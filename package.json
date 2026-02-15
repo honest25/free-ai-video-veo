@@ -1,12 +1,13 @@
 {
-  "name": "free-ai-flow",
+  "name": "free-ai-video-veo",
   "private": true,
   "version": "1.0.0",
   "engines": { "node": ">=18" },
-  "scripts": { "start": "node app.js" },
+  "scripts": {
+    "start": "npx @comfyorg/comfyui@latest --listen 0.0.0.0 --port $PORT"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "uuid": "^9.0.0"
+    "@comfyorg/comfyui": "latest"
   }
 }
 

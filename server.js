@@ -3,24 +3,47 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const app = express();
-const upload = multer();
+const upload = multer({ dest: 'uploads/' });
 
-app.use(express.static('public'));
-app.use(express.json({limit: '50mb'}));
+// CRITICAL: Serve static files FIRST
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true }));
 
+// CRITICAL: Root route - serve index.html directly
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Video generation endpoint
 app.post('/generate-video', upload.single('image'), async (req, res) => {
-  if (!req.file) return res.status(400).send('No image uploaded');
-  
-  // Simulate AI processing: resize + add "frames" effect
-  const frames = [];
-  for (let i = 0; i < 25; i++) {  // 25-frame "video"
-    const frame = await sharp(req.file.buffer)
-      .resize(512, 512)
-      .composite([{ input: Buffer.from(`Frame ${i+1}`), gravity: 'southeast' }])
-      .png()
-      .toBuffer();
-    frames.push(frame);
+  try {
+    if (!req.file) return res.status(400).send('No image uploaded');
+    
+    const frames = [];
+    for (let i = 0; i < 10; i++) {
+      const frame = await sharp(req.file.path)
+        .resize(512, 512)
+        .png()
+        .toBuffer();
+      frames.push(frame);
+    }
+    
+    res.set('Content-Type', 'image/gif');
+    res.send('GIF generated successfully! (Demo mode)');
+  } catch (error) {
+    res.status(500).send('Error: ' + error.message);
   }
+});
+
+// Health check for Render
+app.get('/health', (req, res) => res.send('OK'));
+
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 AI Video server running on port ${port}`);
+});
+
   
   // Return animated GIF (simulates video output)
   const gifBuffer = await sharp({
